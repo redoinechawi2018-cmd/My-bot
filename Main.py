@@ -1,39 +1,45 @@
 import telebot
 import requests
+from flask import Flask
+from threading import Thread
+import os
 
-# بياناتك الخاصة التي لا تتغير
+# --- 1. إنشاء سيرفر وهمي لإرضاء Render ---
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "الوكيل رامي يعمل بنجاح!"
+
+def run():
+    # Render يطلب العمل على المنفذ 10000 أو المنفذ المتغير
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
+
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
+
+# --- 2. إعدادات البوت والوكيل المركزي ---
 TOKEN = '5904781551:AAG7Cpue6H6qKrEiRw950UtdWqaWz7ouRbo'
-MY_ID = 5904781551
 MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/3ewfduqh0ujc9oeol3vqslk8oqn4p53e"
-
 bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.reply_to(message, "🚀 أهلاً بك يا مبرمج رامي. وكيل النشر الشامل جاهز الآن!\n\nأي شيء ترسله لي هنا، سأقوم بنشره تلقائياً في قنواتك، مدونتك، وحساباتك.")
+    bot.reply_to(message, "🚀 الوكيل المركزي لرامي متصل وسيعمل نيابة عنك الآن!")
 
 @bot.message_handler(func=lambda message: True)
-def handle_publish(message):
-    # إشعار البدء لرامي فقط
-    if message.chat.id == MY_ID:
-        bot.reply_to(message, "⏳ جاري إرسال المحتوى للوكيل المركزي للنشر في كل المنصات...")
-        
-        # إرسال البيانات إلى Make.com
-        payload = {
-            "content": message.text,
-            "platform": "all_social_media",
-            "author": "Ramy DZ"
-        }
-        
-        try:
-            res = requests.post(MAKE_WEBHOOK_URL, json=payload)
-            if res.status_code == 200:
-                bot.send_message(MY_ID, "✅ تم النشر بنجاح في يوتيوب، تلغرام، والمدونة!")
-            else:
-                bot.send_message(MY_ID, f"⚠️ الوكيل استلم الرسالة لكن الرد كان: {res.status_code}")
-        except Exception as e:
-            bot.send_message(MY_ID, f"❌ فشل الاتصال بالوكيل: {e}")
-    else:
-        bot.reply_to(message, "عذراً، هذا البوت خاص بالمطور رامي فقط.")
+def handle_all(message):
+    # إرسال المنشور إلى Make.com للنشر في يوتيوب وفيسبوك والمدونة
+    payload = {"content": message.text, "user": "Ramy"}
+    try:
+        requests.post(MAKE_WEBHOOK_URL, json=payload)
+        bot.reply_to(message, "✅ تم إرسال المنشور للوكيل! سيتم النشر في جميع حساباتك فوراً.")
+    except:
+        bot.reply_to(message, "❌ فشل الاتصال بالمنفذ المركزي.")
 
-bot.infinity_polling()
+# --- 3. تشغيل كل شيء ---
+if __name__ == "__main__":
+    keep_alive() # تشغيل السيرفر لإبقاء Render سعيداً
+    bot.infinity_polling()
