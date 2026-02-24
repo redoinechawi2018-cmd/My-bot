@@ -22,7 +22,7 @@ def keep_alive():
 
 # --- 2. إعدادات البوت والوكيل المركزي ---
 TOKEN = '5904781551:AAG7Cpue6H6qKrEiRw950UtdWqaWz7ouRbo'
-MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/3ewfduqh0ujc9oeol3vqslk8oqn4p53e"
+MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/xi6yrdqpcdpjty9dqvwrvh3ykwwavvl0
 bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(commands=['start'])
